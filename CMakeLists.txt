@@ -37,12 +37,29 @@ target_link_libraries(taskforge_app
 
 add_library(taskforge_executors
     src/executors/LineCountExecutor.cpp
+    src/executors/ExecutorRegistry.cpp
     src/executors/WordCountExecutor.cpp
 )
 
 target_include_directories(taskforge_executors
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+add_library(taskforge_worker
+    src/core/WorkerPool.cpp
+)
+
+target_include_directories(taskforge_worker
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(taskforge_worker
+    PUBLIC
+        taskforge_app
+        taskforge_core
+        taskforge_executors
 )
 
 add_executable(taskforge
@@ -57,6 +74,7 @@ add_executable(taskforge_tests
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
+    tests/worker_pool_tests.cpp
 )
 
 target_link_libraries(taskforge_tests
@@ -64,6 +82,7 @@ target_link_libraries(taskforge_tests
         taskforge_app
         taskforge_core
         taskforge_executors
+        taskforge_worker
 )
 
 add_test(NAME taskforge_tests COMMAND taskforge_tests)
