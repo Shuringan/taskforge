@@ -21,6 +21,20 @@ target_include_directories(taskforge_core
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+add_library(taskforge_app
+    src/app/InMemoryJobService.cpp
+)
+
+target_include_directories(taskforge_app
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(taskforge_app
+    PUBLIC
+        taskforge_core
+)
+
 add_library(taskforge_executors
     src/executors/LineCountExecutor.cpp
     src/executors/WordCountExecutor.cpp
@@ -40,12 +54,14 @@ enable_testing()
 add_executable(taskforge_tests
     tests/basic_tests.cpp
     tests/executor_tests.cpp
+    tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
 )
 
 target_link_libraries(taskforge_tests
     PRIVATE
+        taskforge_app
         taskforge_core
         taskforge_executors
 )
