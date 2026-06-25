@@ -72,6 +72,21 @@ target_link_libraries(taskforge_storage
         sqlite3
 )
 
+add_library(taskforge_recovery
+    src/app/JobRecoveryService.cpp
+)
+
+target_include_directories(taskforge_recovery
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(taskforge_recovery
+    PUBLIC
+        taskforge_core
+        taskforge_storage
+)
+
 add_library(taskforge_executors
     src/executors/CsvValidateExecutor.cpp
     src/executors/LineCountExecutor.cpp
@@ -114,6 +129,7 @@ add_executable(taskforge_tests
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
+    tests/job_recovery_tests.cpp
     tests/sqlite_storage_tests.cpp
     tests/worker_pool_tests.cpp
 )
@@ -123,6 +139,7 @@ target_link_libraries(taskforge_tests
         taskforge_app
         taskforge_core
         taskforge_executors
+        taskforge_recovery
         taskforge_storage
         taskforge_worker
 )
