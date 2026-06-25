@@ -60,6 +60,17 @@ bool InMemoryJobService::update_status(const core::JobId& id, core::JobStatus st
     return true;
 }
 
+bool InMemoryJobService::increment_attempts(const core::JobId& id) {
+    std::lock_guard lock(mutex_);
+    const auto it = jobs_.find(id.value());
+    if (it == jobs_.end()) {
+        return false;
+    }
+
+    it->second.increment_attempts();
+    return true;
+}
+
 bool InMemoryJobService::store_result(const core::JobId& id, std::string result) {
     std::lock_guard lock(mutex_);
     const auto it = jobs_.find(id.value());
@@ -80,6 +91,41 @@ bool InMemoryJobService::store_error(const core::JobId& id, std::string error) {
 
     it->second.set_error(std::move(error));
     return true;
+}
+
+bool InMemoryJobService::clear_error(const core::JobId& id) {
+    std::lock_guard lock(mutex_);
+    const auto it = jobs_.find(id.value());
+    if (it == jobs_.end()) {
+        return false;
+    }
+
+    it->second.clear_error();
+    return true;
+}
+
+RetryJobResult InMemoryJobService::retry_job(const core::JobId& id) {
+    core::Job job_to_return{core::JobId{"temporary"}, "temporary"};
+    {
+        std::lock_guard lock(mutex_);
+        const auto it = jobs_.find(id.value());
+        if (it == jobs_.end()) {
+            return RetryJobResult{RetryJobStatus::NotFound, std::nullopt, "Job not found"};
+        }
+        if (it->second.status() != core::JobStatus::Failed) {
+            return RetryJobResult{RetryJobStatus::NotFailed, it->second, "Only failed jobs can be retried"};
+        }
+        if (it->second.attempts() >= it->second.max_attempts()) {
+            return RetryJobResult{RetryJobStatus::AttemptsExhausted, it->second, "Maximum retry attempts reached"};
+        }
+
+        it->second.set_status(core::JobStatus::Pending);
+        it->second.clear_error();
+        job_to_return = it->second;
+    }
+
+    queue_.push(id);
+    return RetryJobResult{RetryJobStatus::Retried, job_to_return, ""};
 }
 
 core::JobId InMemoryJobService::next_job_id() {

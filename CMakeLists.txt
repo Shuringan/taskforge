@@ -197,6 +197,7 @@ add_executable(taskforge_tests
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
     tests/job_recovery_tests.cpp
+    tests/retry_tests.cpp
     tests/sqlite_storage_tests.cpp
     tests/worker_pool_tests.cpp
 )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "taskforge/app/CreateJobRequest.hpp"
+#include "taskforge/app/RetryJobResult.hpp"
 #include "taskforge/core/Job.hpp"
 #include "taskforge/core/JobQueue.hpp"
 
@@ -23,8 +24,11 @@ public:
     std::vector<core::Job> list_jobs() const;
 
     bool update_status(const core::JobId& id, core::JobStatus status);
+    bool increment_attempts(const core::JobId& id);
     bool store_result(const core::JobId& id, std::string result);
     bool store_error(const core::JobId& id, std::string error);
+    bool clear_error(const core::JobId& id);
+    RetryJobResult retry_job(const core::JobId& id);
 
 private:
     core::JobId next_job_id();

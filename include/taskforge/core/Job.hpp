@@ -44,6 +44,7 @@ public:
     void set_attempts(int attempts);
     void set_result(std::string result);
     void set_error(std::string error);
+    void clear_error() noexcept;
 
 private:
     JobId id_;

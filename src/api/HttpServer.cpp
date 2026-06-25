@@ -48,6 +48,11 @@ HttpServer::HttpServer(
         apply_response(jobs_.create_job(request.body), response);
     });
 
+    server_->Post(R"(/jobs/([^/]+)/retry)", [this](const httplib::Request& request, httplib::Response& response) {
+        (void)request;
+        apply_response(jobs_.retry_job(request.matches[1]), response);
+    });
+
     server_->Get("/jobs", [this](const httplib::Request&, httplib::Response& response) {
         apply_response(jobs_.list_jobs(), response);
     });
@@ -98,6 +103,15 @@ ApiResponse HttpServer::handle_request(
     }
     if (method == "POST" && path == "/jobs") {
         return jobs_.create_job(body);
+    }
+    if (method == "POST" && path.rfind("/jobs/", 0) == 0) {
+        const std::string prefix = "/jobs/";
+        const std::string suffix = "/retry";
+        const auto tail = path.substr(prefix.size());
+        if (tail.size() > suffix.size()
+            && tail.compare(tail.size() - suffix.size(), suffix.size(), suffix) == 0) {
+            return jobs_.retry_job(tail.substr(0, tail.size() - suffix.size()));
+        }
     }
     if (method == "GET" && path == "/jobs") {
         return jobs_.list_jobs();

@@ -46,6 +46,7 @@ The current HTTP API exposes:
 - `GET /jobs`
 - `GET /jobs/{job_id}`
 - `GET /jobs/{job_id}/result`
+- `POST /jobs/{job_id}/retry`
 
 Example file registration:
 

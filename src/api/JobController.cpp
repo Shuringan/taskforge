@@ -119,4 +119,31 @@ ApiResponse JobController::get_result(const std::string& job_id) const {
     }
 }
 
+ApiResponse JobController::retry_job(const std::string& job_id) {
+    try {
+        const auto result = jobs_.retry_job(core::JobId{job_id});
+        switch (result.status) {
+        case app::RetryJobStatus::Retried: {
+            nlohmann::json response{
+                {"job_id", result.job->id().value()},
+                {"status", core::to_string(result.job->status())},
+                {"attempts", result.job->attempts()},
+                {"max_attempts", result.job->max_attempts()}
+            };
+            return ApiResponse{200, "application/json", response.dump()};
+        }
+        case app::RetryJobStatus::NotFound:
+            return json_error(404, "Job not found");
+        case app::RetryJobStatus::NotFailed:
+            return json_error(409, "Only failed jobs can be retried");
+        case app::RetryJobStatus::AttemptsExhausted:
+            return json_error(409, "Maximum retry attempts reached");
+        }
+    } catch (const std::invalid_argument&) {
+        return json_error(404, "Job not found");
+    }
+
+    return json_error(500, "Unexpected server error");
+}
+
 } // namespace taskforge::api

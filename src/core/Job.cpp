@@ -118,4 +118,8 @@ void Job::set_error(std::string error) {
     error_ = std::move(error);
 }
 
+void Job::clear_error() noexcept {
+    error_.reset();
+}
+
 } // namespace taskforge::core

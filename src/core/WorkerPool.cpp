@@ -92,6 +92,15 @@ void WorkerPool::process_job(const JobId& id) {
     }
 
     job_service_.store_error(id, result.error);
+    job_service_.increment_attempts(id);
+    const auto updated = job_service_.get_job(id);
+    if (updated.has_value() && updated->attempts() < updated->max_attempts()) {
+        job_service_.clear_error(id);
+        job_service_.update_status(id, JobStatus::Pending);
+        queue_.push(id);
+        return;
+    }
+
     job_service_.update_status(id, JobStatus::Failed);
 }
 
