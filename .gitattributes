@@ -3,3 +3,6 @@
 *.md text eol=lf
 *.txt text eol=lf
 *.csv text eol=lf
+*.yml text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf

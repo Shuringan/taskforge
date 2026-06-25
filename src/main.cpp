@@ -8,6 +8,7 @@
 #include "taskforge/core/JobQueue.hpp"
 
 #include <iostream>
+#include <cstdlib>
 #include <string_view>
 
 int main(int argc, char** argv) {
@@ -19,8 +20,11 @@ int main(int argc, char** argv) {
         taskforge::api::MetricsController metrics{queue, jobs};
         taskforge::api::FileController file_controller{files};
         taskforge::api::JobController job_controller{jobs, files};
+        const char* host_env = std::getenv("TASKFORGE_HOST");
+        const std::string_view host = host_env ? std::string_view{host_env} : "127.0.0.1";
+
         taskforge::api::HttpServer server{
-            "127.0.0.1",
+            std::string{host},
             8080,
             health,
             metrics,
@@ -28,7 +32,7 @@ int main(int argc, char** argv) {
             job_controller
         };
 
-        std::cout << "TaskForge listening on http://127.0.0.1:8080\n";
+        std::cout << "TaskForge listening on http://" << host << ":8080\n";
         return server.listen() ? 0 : 1;
     }
 

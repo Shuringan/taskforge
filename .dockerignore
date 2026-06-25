@@ -1,0 +1,10 @@
+build/
+.git/
+.github/
+.vscode/
+.idea/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z

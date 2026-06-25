@@ -125,6 +125,30 @@ On multi-configuration generators:
 ctest --test-dir build --output-on-failure -C Debug
 ```
 
+## Docker
+
+Build the image:
+
+```bash
+docker build -t taskforge .
+```
+
+Run the HTTP server:
+
+```bash
+docker run --rm -p 8080:8080 taskforge
+```
+
+The Docker image sets `TASKFORGE_HOST=0.0.0.0` so the HTTP server is reachable
+through the published container port.
+
+## CI
+
+GitHub Actions workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
+The workflow configures CMake, builds the project, and runs the test suite on
+Ubuntu for pushes and pull requests.
+
 ## Examples
 
 Sample files are available in [data/samples](data/samples).
@@ -160,4 +184,4 @@ Simple curl helper scripts are available in [scripts](scripts).
 - Add configuration loading.
 - Add structured logging.
 - Add OpenAPI documentation.
-- Add Docker and CI.
+- Add persistent HTTP application wiring.
