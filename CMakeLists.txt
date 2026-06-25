@@ -19,6 +19,24 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sqlite_amalgamation)
 
+set(CPP_HTTPLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/cpp_httplib)
+file(MAKE_DIRECTORY ${CPP_HTTPLIB_INCLUDE_DIR})
+file(DOWNLOAD
+    https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h
+    ${CPP_HTTPLIB_INCLUDE_DIR}/httplib.h
+    STATUS CPP_HTTPLIB_DOWNLOAD_STATUS
+)
+list(GET CPP_HTTPLIB_DOWNLOAD_STATUS 0 CPP_HTTPLIB_DOWNLOAD_CODE)
+if (NOT CPP_HTTPLIB_DOWNLOAD_CODE EQUAL 0)
+    message(FATAL_ERROR "Failed to download cpp-httplib")
+endif()
+
+add_library(cpp_httplib INTERFACE)
+target_include_directories(cpp_httplib
+    INTERFACE
+        ${CPP_HTTPLIB_INCLUDE_DIR}
+)
+
 add_library(sqlite3 STATIC
     ${sqlite_amalgamation_SOURCE_DIR}/sqlite3.c
 )
@@ -52,6 +70,25 @@ target_include_directories(taskforge_app
 target_link_libraries(taskforge_app
     PUBLIC
         taskforge_core
+)
+
+add_library(taskforge_api
+    src/api/HealthController.cpp
+    src/api/HttpServer.cpp
+    src/api/MetricsController.cpp
+)
+
+target_include_directories(taskforge_api
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(taskforge_api
+    PUBLIC
+        taskforge_app
+        taskforge_core
+    PRIVATE
+        cpp_httplib
 )
 
 add_library(taskforge_storage
@@ -119,6 +156,13 @@ add_executable(taskforge
     src/main.cpp
 )
 
+target_link_libraries(taskforge
+    PRIVATE
+        taskforge_api
+        taskforge_app
+        taskforge_core
+)
+
 enable_testing()
 
 add_executable(taskforge_tests
@@ -126,6 +170,7 @@ add_executable(taskforge_tests
     tests/csv_validate_executor_tests.cpp
     tests/executor_tests.cpp
     tests/file_registry_tests.cpp
+    tests/http_health_metrics_tests.cpp
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
@@ -137,6 +182,7 @@ add_executable(taskforge_tests
 target_link_libraries(taskforge_tests
     PRIVATE
         taskforge_app
+        taskforge_api
         taskforge_core
         taskforge_executors
         taskforge_recovery

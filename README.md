@@ -30,6 +30,21 @@ After building, run the executable from the build directory:
 On Windows with a multi-configuration generator, the executable may be under a
 configuration subdirectory such as `build/Debug/taskforge.exe`.
 
+To start the current HTTP server:
+
+```bash
+./build/taskforge --serve
+```
+
+The initial HTTP API exposes only:
+
+- `GET /health`
+- `GET /metrics`
+
+The HTTP layer uses `cpp-httplib` as a small header-only dependency downloaded
+by CMake. Boost.Beast was not used in this stage to keep the Windows bootstrap
+small and practical.
+
 ## Planned Functionality
 
 Future tasks will add the job model, queue, worker pool, file processing,
