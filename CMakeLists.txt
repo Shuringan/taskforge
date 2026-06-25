@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(taskforge_core
     src/core/Job.cpp
+    src/core/JobQueue.cpp
     src/core/JobStatus.cpp
 )
 
@@ -29,6 +30,7 @@ enable_testing()
 add_executable(taskforge_tests
     tests/basic_tests.cpp
     tests/job_model_tests.cpp
+    tests/job_queue_tests.cpp
 )
 
 target_link_libraries(taskforge_tests
