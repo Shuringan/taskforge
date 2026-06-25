@@ -21,6 +21,39 @@ Job::Job(JobId id, std::string type, std::string file_id, int priority, int max_
     }
 }
 
+Job::Job(
+    JobId id,
+    std::string type,
+    std::string file_id,
+    JobStatus status,
+    int priority,
+    int attempts,
+    int max_attempts,
+    std::chrono::system_clock::time_point created_at,
+    std::optional<std::string> result,
+    std::optional<std::string> error
+)
+    : id_(std::move(id)),
+      type_(std::move(type)),
+      file_id_(std::move(file_id)),
+      status_(status),
+      priority_(priority),
+      attempts_(attempts),
+      max_attempts_(max_attempts),
+      created_at_(created_at),
+      result_(std::move(result)),
+      error_(std::move(error)) {
+    if (type_.empty()) {
+        throw std::invalid_argument("Job type must not be empty");
+    }
+    if (attempts_ < 0) {
+        throw std::invalid_argument("Job attempts must not be negative");
+    }
+    if (max_attempts_ < 1) {
+        throw std::invalid_argument("Job max_attempts must be at least 1");
+    }
+}
+
 const JobId& Job::id() const noexcept {
     return id_;
 }
@@ -67,6 +100,14 @@ void Job::set_status(JobStatus status) noexcept {
 
 void Job::increment_attempts() noexcept {
     ++attempts_;
+}
+
+void Job::set_attempts(int attempts) {
+    if (attempts < 0) {
+        throw std::invalid_argument("Job attempts must not be negative");
+    }
+
+    attempts_ = attempts;
 }
 
 void Job::set_result(std::string result) {

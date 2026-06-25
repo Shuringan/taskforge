@@ -3,12 +3,30 @@ cmake_minimum_required(VERSION 3.20)
 project(TaskForge
     VERSION 0.1.0
     DESCRIPTION "C++20 async file processing backend"
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
+
+include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+FetchContent_Declare(
+    sqlite_amalgamation
+    URL https://www.sqlite.org/2026/sqlite-amalgamation-3530200.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(sqlite_amalgamation)
+
+add_library(sqlite3 STATIC
+    ${sqlite_amalgamation_SOURCE_DIR}/sqlite3.c
+)
+
+target_include_directories(sqlite3
+    PUBLIC
+        ${sqlite_amalgamation_SOURCE_DIR}
+)
 
 add_library(taskforge_core
     src/core/Job.cpp
@@ -34,6 +52,24 @@ target_include_directories(taskforge_app
 target_link_libraries(taskforge_app
     PUBLIC
         taskforge_core
+)
+
+add_library(taskforge_storage
+    src/storage/Database.cpp
+    src/storage/SQLiteFileRepository.cpp
+    src/storage/SQLiteJobRepository.cpp
+)
+
+target_include_directories(taskforge_storage
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(taskforge_storage
+    PUBLIC
+        taskforge_core
+    PRIVATE
+        sqlite3
 )
 
 add_library(taskforge_executors
@@ -78,6 +114,7 @@ add_executable(taskforge_tests
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
+    tests/sqlite_storage_tests.cpp
     tests/worker_pool_tests.cpp
 )
 
@@ -86,6 +123,7 @@ target_link_libraries(taskforge_tests
         taskforge_app
         taskforge_core
         taskforge_executors
+        taskforge_storage
         taskforge_worker
 )
 

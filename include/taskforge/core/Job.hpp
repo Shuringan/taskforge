@@ -15,6 +15,18 @@ class Job {
 public:
     Job(JobId id, std::string type, int priority = 0, int max_attempts = 1);
     Job(JobId id, std::string type, std::string file_id, int priority = 0, int max_attempts = 1);
+    Job(
+        JobId id,
+        std::string type,
+        std::string file_id,
+        JobStatus status,
+        int priority,
+        int attempts,
+        int max_attempts,
+        std::chrono::system_clock::time_point created_at,
+        std::optional<std::string> result,
+        std::optional<std::string> error
+    );
 
     const JobId& id() const noexcept;
     const std::string& type() const noexcept;
@@ -29,6 +41,7 @@ public:
 
     void set_status(JobStatus status) noexcept;
     void increment_attempts() noexcept;
+    void set_attempts(int attempts);
     void set_result(std::string result);
     void set_error(std::string error);
 

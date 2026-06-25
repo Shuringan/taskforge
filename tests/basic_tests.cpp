@@ -6,6 +6,7 @@ int run_file_registry_tests();
 int run_in_memory_job_service_tests();
 int run_job_model_tests();
 int run_job_queue_tests();
+int run_sqlite_storage_tests();
 int run_worker_pool_tests();
 
 int main() {
@@ -20,6 +21,7 @@ int main() {
     const int in_memory_job_service_result = run_in_memory_job_service_tests();
     const int job_model_result = run_job_model_tests();
     const int job_queue_result = run_job_queue_tests();
+    const int sqlite_storage_result = run_sqlite_storage_tests();
     const int worker_pool_result = run_worker_pool_tests();
 
     return csv_validate_executor_result == 0
@@ -28,5 +30,6 @@ int main() {
         && file_registry_result == 0
         && job_model_result == 0
         && job_queue_result == 0
+        && sqlite_storage_result == 0
         && worker_pool_result == 0 ? 0 : 1;
 }
