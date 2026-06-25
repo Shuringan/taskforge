@@ -1,0 +1,13 @@
+#pragma once
+
+#include "taskforge/executors/JobExecutor.hpp"
+
+namespace taskforge::executors {
+
+class LineCountExecutor final : public JobExecutor {
+public:
+    std::string type() const override;
+    ExecutionResult execute(const std::filesystem::path& file_path) override;
+};
+
+} // namespace taskforge::executors
