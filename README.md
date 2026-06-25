@@ -36,10 +36,32 @@ To start the current HTTP server:
 ./build/taskforge --serve
 ```
 
-The initial HTTP API exposes only:
+The current HTTP API exposes:
 
 - `GET /health`
 - `GET /metrics`
+- `POST /files`
+- `GET /files/{file_id}`
+- `POST /jobs`
+- `GET /jobs`
+- `GET /jobs/{job_id}`
+- `GET /jobs/{job_id}/result`
+
+Example file registration:
+
+```bash
+curl -X POST http://127.0.0.1:8080/files \
+  -H "Content-Type: application/json" \
+  -d '{"path":"data/samples/products.csv","original_name":"products.csv"}'
+```
+
+Example job creation:
+
+```bash
+curl -X POST http://127.0.0.1:8080/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"type":"csv_validate","file_id":"file-1","priority":0,"max_attempts":1}'
+```
 
 The HTTP layer uses `cpp-httplib` as a small header-only dependency downloaded
 by CMake. Boost.Beast was not used in this stage to keep the Windows bootstrap

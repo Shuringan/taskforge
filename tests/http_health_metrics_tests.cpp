@@ -1,6 +1,9 @@
 #include "taskforge/api/HealthController.hpp"
 #include "taskforge/api/HttpServer.hpp"
 #include "taskforge/api/MetricsController.hpp"
+#include "taskforge/api/FileController.hpp"
+#include "taskforge/api/JobController.hpp"
+#include "taskforge/app/InMemoryFileService.hpp"
 #include "taskforge/app/InMemoryJobService.hpp"
 
 #include <iostream>
@@ -19,10 +22,20 @@ void expect(bool condition, const std::string& message) {
 
 struct ApiFixture {
     taskforge::core::JobQueue queue;
+    taskforge::app::InMemoryFileService files;
     taskforge::app::InMemoryJobService jobs{queue};
     taskforge::api::HealthController health{queue};
     taskforge::api::MetricsController metrics{queue, jobs};
-    taskforge::api::HttpServer server{"127.0.0.1", 8080, health, metrics};
+    taskforge::api::FileController file_controller{files};
+    taskforge::api::JobController job_controller{jobs, files};
+    taskforge::api::HttpServer server{
+        "127.0.0.1",
+        8080,
+        health,
+        metrics,
+        file_controller,
+        job_controller
+    };
 };
 
 void test_health_returns_200() {

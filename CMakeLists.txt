@@ -37,6 +37,24 @@ target_include_directories(cpp_httplib
         ${CPP_HTTPLIB_INCLUDE_DIR}
 )
 
+set(NLOHMANN_JSON_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/nlohmann_json)
+file(MAKE_DIRECTORY ${NLOHMANN_JSON_INCLUDE_DIR}/nlohmann)
+file(DOWNLOAD
+    https://raw.githubusercontent.com/nlohmann/json/develop/single_include/nlohmann/json.hpp
+    ${NLOHMANN_JSON_INCLUDE_DIR}/nlohmann/json.hpp
+    STATUS NLOHMANN_JSON_DOWNLOAD_STATUS
+)
+list(GET NLOHMANN_JSON_DOWNLOAD_STATUS 0 NLOHMANN_JSON_DOWNLOAD_CODE)
+if (NOT NLOHMANN_JSON_DOWNLOAD_CODE EQUAL 0)
+    message(FATAL_ERROR "Failed to download nlohmann/json")
+endif()
+
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json
+    INTERFACE
+        ${NLOHMANN_JSON_INCLUDE_DIR}
+)
+
 add_library(sqlite3 STATIC
     ${sqlite_amalgamation_SOURCE_DIR}/sqlite3.c
 )
@@ -73,8 +91,10 @@ target_link_libraries(taskforge_app
 )
 
 add_library(taskforge_api
+    src/api/FileController.cpp
     src/api/HealthController.cpp
     src/api/HttpServer.cpp
+    src/api/JobController.cpp
     src/api/MetricsController.cpp
 )
 
@@ -89,6 +109,7 @@ target_link_libraries(taskforge_api
         taskforge_core
     PRIVATE
         cpp_httplib
+        nlohmann_json
 )
 
 add_library(taskforge_storage
@@ -171,6 +192,7 @@ add_executable(taskforge_tests
     tests/executor_tests.cpp
     tests/file_registry_tests.cpp
     tests/http_health_metrics_tests.cpp
+    tests/http_file_job_api_tests.cpp
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp

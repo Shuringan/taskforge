@@ -4,6 +4,7 @@ int run_csv_validate_executor_tests();
 int run_executor_tests();
 int run_file_registry_tests();
 int run_http_health_metrics_tests();
+int run_http_file_job_api_tests();
 int run_in_memory_job_service_tests();
 int run_job_model_tests();
 int run_job_queue_tests();
@@ -21,6 +22,7 @@ int main() {
     const int executor_result = run_executor_tests();
     const int file_registry_result = run_file_registry_tests();
     const int http_health_metrics_result = run_http_health_metrics_tests();
+    const int http_file_job_api_result = run_http_file_job_api_tests();
     const int in_memory_job_service_result = run_in_memory_job_service_tests();
     const int job_model_result = run_job_model_tests();
     const int job_queue_result = run_job_queue_tests();
@@ -33,6 +35,7 @@ int main() {
         && in_memory_job_service_result == 0
         && file_registry_result == 0
         && http_health_metrics_result == 0
+        && http_file_job_api_result == 0
         && job_model_result == 0
         && job_queue_result == 0
         && job_recovery_result == 0
