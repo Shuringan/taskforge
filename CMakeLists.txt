@@ -37,6 +37,7 @@ target_link_libraries(taskforge_app
 )
 
 add_library(taskforge_executors
+    src/executors/CsvValidateExecutor.cpp
     src/executors/LineCountExecutor.cpp
     src/executors/ExecutorRegistry.cpp
     src/executors/WordCountExecutor.cpp
@@ -71,6 +72,7 @@ enable_testing()
 
 add_executable(taskforge_tests
     tests/basic_tests.cpp
+    tests/csv_validate_executor_tests.cpp
     tests/executor_tests.cpp
     tests/file_registry_tests.cpp
     tests/in_memory_job_service_tests.cpp
