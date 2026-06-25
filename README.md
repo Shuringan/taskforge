@@ -1,42 +1,65 @@
 # TaskForge
 
-TaskForge is a planned C++20 backend service for asynchronous file processing.
+## Overview
 
-Current status: bootstrap only. The project currently provides a minimal CMake
-build, a simple executable, and a basic test target. Full functionality will be
-implemented task by task.
+TaskForge is a C++20 backend service for asynchronous local file processing.
+It exposes a small HTTP API for registering existing local files, creating jobs,
+checking job state, retrieving results, retrying failed work, and cancelling
+pending work.
 
-## Build
+## Features
 
-```bash
-cmake -S . -B build
-cmake --build build
+- CMake-based C++20 build.
+- In-memory file and job services.
+- Thread-safe job queue.
+- Worker pool for background execution.
+- Executors for `line_count`, `word_count`, and `csv_validate`.
+- SQLite repository layer and startup recovery component.
+- HTTP endpoints for files, jobs, health, and metrics.
+- Retry support for failed jobs.
+- Cooperative cancellation support for pending and running jobs.
+- Unit/controller tests.
+
+## Architecture
+
+```text
+Client
+  |
+  v
+HTTP API
+  |
+  v
+Application services
+  |
+  +-------> Repository / SQLite
+  |
+  v
+JobQueue
+  |
+  v
+WorkerPool
+  |
+  v
+Executors
 ```
 
-## Test
+More detail is available in [docs/architecture.md](docs/architecture.md).
 
-```bash
-ctest --test-dir build --output-on-failure
+## Job lifecycle
+
+```text
+pending -> running -> done
+pending -> running -> failed
+pending -> cancelled
+running -> cancelled
+failed -> pending
 ```
 
-## Run
+The last transition happens when a failed job is retried.
 
-After building, run the executable from the build directory:
+## API
 
-```bash
-./build/taskforge
-```
-
-On Windows with a multi-configuration generator, the executable may be under a
-configuration subdirectory such as `build/Debug/taskforge.exe`.
-
-To start the current HTTP server:
-
-```bash
-./build/taskforge --serve
-```
-
-The current HTTP API exposes:
+Implemented endpoints:
 
 - `GET /health`
 - `GET /metrics`
@@ -49,28 +72,92 @@ The current HTTP API exposes:
 - `POST /jobs/{job_id}/retry`
 - `POST /jobs/{job_id}/cancel`
 
-Example file registration:
+See [docs/api.md](docs/api.md) for request and response examples.
+
+## Build
 
 ```bash
-curl -X POST http://127.0.0.1:8080/files \
-  -H "Content-Type: application/json" \
-  -d '{"path":"data/samples/products.csv","original_name":"products.csv"}'
+cmake -S . -B build
+cmake --build build
 ```
 
-Example job creation:
+CMake downloads small source dependencies during configure:
+
+- SQLite amalgamation;
+- `cpp-httplib`;
+- `nlohmann/json`.
+
+## Run
+
+Default executable behavior:
 
 ```bash
-curl -X POST http://127.0.0.1:8080/jobs \
-  -H "Content-Type: application/json" \
-  -d '{"type":"csv_validate","file_id":"file-1","priority":0,"max_attempts":1}'
+./build/taskforge
 ```
 
-The HTTP layer uses `cpp-httplib` as a small header-only dependency downloaded
-by CMake. Boost.Beast was not used in this stage to keep the Windows bootstrap
-small and practical.
+Start the HTTP server:
 
-## Planned Functionality
+```bash
+./build/taskforge --serve
+```
 
-Future tasks will add the job model, queue, worker pool, file processing,
-storage, and HTTP API. These features are not implemented in the bootstrap
-stage.
+On Windows with a multi-configuration generator, use:
+
+```powershell
+.\build\Debug\taskforge.exe --serve
+```
+
+Default server address:
+
+```text
+http://127.0.0.1:8080
+```
+
+## Tests
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+On multi-configuration generators:
+
+```bash
+ctest --test-dir build --output-on-failure -C Debug
+```
+
+## Examples
+
+Sample files are available in [data/samples](data/samples).
+
+Manual scenarios are documented in [docs/examples.md](docs/examples.md).
+
+Simple curl helper scripts are available in [scripts](scripts).
+
+## Design decisions
+
+- `cpp-httplib` is used instead of Boost.Beast to keep the local Windows build
+  small and practical.
+- HTTP state is currently wired to in-memory services.
+- SQLite repositories are implemented and tested, but the default HTTP server
+  still uses the in-memory services.
+- CSV parsing is intentionally simple: comma delimiter, trimmed fields, no
+  quoted-field support.
+- Cancellation is cooperative. Workers skip cancelled jobs and avoid overwriting
+  cancelled running jobs after executor completion.
+
+## Limitations
+
+- No authentication.
+- No multipart upload.
+- No persistent HTTP application wiring yet.
+- No OpenAPI generator.
+- No delayed retry or exponential backoff.
+- CSV parsing is not full RFC 4180.
+
+## Future improvements
+
+- Wire HTTP services to SQLite repositories.
+- Add configuration loading.
+- Add structured logging.
+- Add OpenAPI documentation.
+- Add Docker and CI.
