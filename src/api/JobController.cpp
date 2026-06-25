@@ -146,4 +146,27 @@ ApiResponse JobController::retry_job(const std::string& job_id) {
     return json_error(500, "Unexpected server error");
 }
 
+ApiResponse JobController::cancel_job(const std::string& job_id) {
+    try {
+        const auto result = jobs_.cancel_job(core::JobId{job_id});
+        switch (result.status) {
+        case app::CancelJobStatus::Cancelled: {
+            nlohmann::json response{
+                {"job_id", result.job->id().value()},
+                {"status", core::to_string(result.job->status())}
+            };
+            return ApiResponse{200, "application/json", response.dump()};
+        }
+        case app::CancelJobStatus::NotFound:
+            return json_error(404, "Job not found");
+        case app::CancelJobStatus::InvalidState:
+            return json_error(409, "Cannot cancel completed job");
+        }
+    } catch (const std::invalid_argument&) {
+        return json_error(404, "Job not found");
+    }
+
+    return json_error(500, "Unexpected server error");
+}
+
 } // namespace taskforge::api

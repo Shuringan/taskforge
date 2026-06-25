@@ -18,6 +18,7 @@ public:
     ApiResponse get_job(const std::string& job_id) const;
     ApiResponse get_result(const std::string& job_id) const;
     ApiResponse retry_job(const std::string& job_id);
+    ApiResponse cancel_job(const std::string& job_id);
 
 private:
     app::InMemoryJobService& jobs_;

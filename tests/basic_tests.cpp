@@ -1,5 +1,6 @@
 #include <iostream>
 
+int run_cancellation_tests();
 int run_csv_validate_executor_tests();
 int run_executor_tests();
 int run_file_registry_tests();
@@ -19,6 +20,7 @@ int main() {
         return 1;
     }
 
+    const int cancellation_result = run_cancellation_tests();
     const int csv_validate_executor_result = run_csv_validate_executor_tests();
     const int executor_result = run_executor_tests();
     const int file_registry_result = run_file_registry_tests();
@@ -32,7 +34,8 @@ int main() {
     const int sqlite_storage_result = run_sqlite_storage_tests();
     const int worker_pool_result = run_worker_pool_tests();
 
-    return csv_validate_executor_result == 0
+    return cancellation_result == 0
+        && csv_validate_executor_result == 0
         && executor_result == 0
         && in_memory_job_service_result == 0
         && file_registry_result == 0

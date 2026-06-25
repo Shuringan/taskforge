@@ -75,6 +75,9 @@ void WorkerPool::process_job(const JobId& id) {
     if (!job.has_value()) {
         return;
     }
+    if (job->status() == JobStatus::Cancelled) {
+        return;
+    }
 
     const auto executor = executors_.find(job->type());
     if (!executor) {
@@ -85,6 +88,13 @@ void WorkerPool::process_job(const JobId& id) {
 
     job_service_.update_status(id, JobStatus::Running);
     const auto result = executor->execute(job->file_id());
+    const auto after_execution = job_service_.get_job(id);
+    if (job_service_.is_cancellation_requested(id)
+        || (after_execution.has_value() && after_execution->status() == JobStatus::Cancelled)) {
+        job_service_.update_status(id, JobStatus::Cancelled);
+        return;
+    }
+
     if (result.success) {
         job_service_.store_result(id, result.output);
         job_service_.update_status(id, JobStatus::Done);

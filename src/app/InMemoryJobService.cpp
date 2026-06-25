@@ -128,6 +128,30 @@ RetryJobResult InMemoryJobService::retry_job(const core::JobId& id) {
     return RetryJobResult{RetryJobStatus::Retried, job_to_return, ""};
 }
 
+CancelJobResult InMemoryJobService::cancel_job(const core::JobId& id) {
+    std::lock_guard lock(mutex_);
+    const auto it = jobs_.find(id.value());
+    if (it == jobs_.end()) {
+        return CancelJobResult{CancelJobStatus::NotFound, std::nullopt, "Job not found"};
+    }
+
+    const auto status = it->second.status();
+    if (status == core::JobStatus::Done
+        || status == core::JobStatus::Failed
+        || status == core::JobStatus::Cancelled) {
+        return CancelJobResult{CancelJobStatus::InvalidState, it->second, "Cannot cancel completed job"};
+    }
+
+    cancellation_requests_.insert(id.value());
+    it->second.set_status(core::JobStatus::Cancelled);
+    return CancelJobResult{CancelJobStatus::Cancelled, it->second, ""};
+}
+
+bool InMemoryJobService::is_cancellation_requested(const core::JobId& id) const {
+    std::lock_guard lock(mutex_);
+    return cancellation_requests_.contains(id.value());
+}
+
 core::JobId InMemoryJobService::next_job_id() {
     std::lock_guard lock(mutex_);
     return core::JobId{"job-" + std::to_string(next_id_++)};

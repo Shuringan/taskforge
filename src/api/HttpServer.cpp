@@ -53,6 +53,11 @@ HttpServer::HttpServer(
         apply_response(jobs_.retry_job(request.matches[1]), response);
     });
 
+    server_->Post(R"(/jobs/([^/]+)/cancel)", [this](const httplib::Request& request, httplib::Response& response) {
+        (void)request;
+        apply_response(jobs_.cancel_job(request.matches[1]), response);
+    });
+
     server_->Get("/jobs", [this](const httplib::Request&, httplib::Response& response) {
         apply_response(jobs_.list_jobs(), response);
     });
@@ -111,6 +116,11 @@ ApiResponse HttpServer::handle_request(
         if (tail.size() > suffix.size()
             && tail.compare(tail.size() - suffix.size(), suffix.size(), suffix) == 0) {
             return jobs_.retry_job(tail.substr(0, tail.size() - suffix.size()));
+        }
+        const std::string cancel_suffix = "/cancel";
+        if (tail.size() > cancel_suffix.size()
+            && tail.compare(tail.size() - cancel_suffix.size(), cancel_suffix.size(), cancel_suffix) == 0) {
+            return jobs_.cancel_job(tail.substr(0, tail.size() - cancel_suffix.size()));
         }
     }
     if (method == "GET" && path == "/jobs") {

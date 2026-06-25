@@ -188,6 +188,7 @@ enable_testing()
 
 add_executable(taskforge_tests
     tests/basic_tests.cpp
+    tests/cancellation_tests.cpp
     tests/csv_validate_executor_tests.cpp
     tests/executor_tests.cpp
     tests/file_registry_tests.cpp

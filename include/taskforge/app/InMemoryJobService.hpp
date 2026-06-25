@@ -1,5 +1,6 @@
 #pragma once
 
+#include "taskforge/app/CancelJobResult.hpp"
 #include "taskforge/app/CreateJobRequest.hpp"
 #include "taskforge/app/RetryJobResult.hpp"
 #include "taskforge/core/Job.hpp"
@@ -9,6 +10,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 
@@ -29,6 +31,8 @@ public:
     bool store_error(const core::JobId& id, std::string error);
     bool clear_error(const core::JobId& id);
     RetryJobResult retry_job(const core::JobId& id);
+    CancelJobResult cancel_job(const core::JobId& id);
+    bool is_cancellation_requested(const core::JobId& id) const;
 
 private:
     core::JobId next_job_id();
@@ -36,6 +40,7 @@ private:
     core::JobQueue& queue_;
     mutable std::mutex mutex_;
     std::unordered_map<std::string, core::Job> jobs_;
+    std::unordered_set<std::string> cancellation_requests_;
     std::size_t next_id_{1};
 };
 
