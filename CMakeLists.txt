@@ -22,6 +22,7 @@ target_include_directories(taskforge_core
 )
 
 add_library(taskforge_app
+    src/app/InMemoryFileService.cpp
     src/app/InMemoryJobService.cpp
 )
 
@@ -71,6 +72,7 @@ enable_testing()
 add_executable(taskforge_tests
     tests/basic_tests.cpp
     tests/executor_tests.cpp
+    tests/file_registry_tests.cpp
     tests/in_memory_job_service_tests.cpp
     tests/job_model_tests.cpp
     tests/job_queue_tests.cpp
